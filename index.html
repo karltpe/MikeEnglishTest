@@ -3,27 +3,427 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的第一個網站</title>
+    <title>單字例句抽考測試 (字母方塊複選)</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        header { background: #007bff; color: white; padding: 20px; text-align: center; }
-        nav a { margin: 0 15px; color: white; text-decoration: none; }
-        section { margin: 20px 0; padding: 20px; border-bottom: 1px solid #ddd; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+        .letter-blocks {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .letter-block {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.2s;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            /* 預設邊框 */
+            border: 2px solid transparent; 
+        }
+        .letter-block:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        /* 🎨 關鍵修改: 選取後的視覺效果 (反紅) */
+        .letter-block.selected-block {
+            background-color: #dc3545; /* 強烈的紅色 */
+            border: 2px solid #bd2130;
+        }
+        
+        .test-area {
+            border: 2px solid #ccc;
+            padding: 30px;
+            border-radius: 8px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: #e9ecef;
+            text-align: center;
+        }
+        .hint-text {
+            color: #dc3545;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .word-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .sentence-display {
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .controls button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .show-btn {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .show-btn:hover {
+            background-color: #117a8b;
+        }
+        .correct-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .correct-btn:hover {
+            background-color: #1e7e34;
+        }
+        .incorrect-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        .incorrect-btn:hover {
+            background-color: #bd2130;
+        }
+        .start-btn {
+            width: 100%;
+            background-color: #ffc107;
+            color: #333;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        .start-btn:hover {
+            background-color: #e0a800;
+        }
+        .feedback {
+            font-size: 1.1em;
+            margin-top: 10px;
+            min-height: 25px;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <h1>歡迎來到我的網站</h1>
-        <nav><a href="#about">關於</a><a href="#contact">聯絡</a></nav>
-    </header>
-    <section id="about">
-        <h2>關於我</h2>
-        <p>這是用 GitHub Pages 快速架設的靜態網站！適合展示作品、部落格等。</p>
-    </section>
-    <section id="contact">
-        <h2>聯絡方式</h2>
-        <p>Email: your@email.com</p>
-    </section>
+    <div class="container">
+        <h1>單字例句抽考測試 (字母方塊複選)</h1>
+        
+        <div class="letter-blocks">
+            <div class="letter-block" data-file="a.json">A</div>
+            <div class="letter-block" data-file="b.json">B</div>
+            <div class="letter-block" data-file="c.json">C</div>
+            <div class="letter-block" data-file="d.json">D</div>
+            <div class="letter-block" data-file="e.json">E</div>
+            <div class="letter-block" data-file="f.json">F</div>
+            <div class="letter-block" data-file="g.json">G</div>
+            <div class="letter-block" data-file="h.json">H</div>
+            <div class="letter-block" data-file="i.json">I</div>
+            <div class="letter-block" data-file="j.json">J</div>
+            <div class="letter-block" data-file="k.json">K</div>
+            <div class="letter-block" data-file="l.json">L</div>
+            <div class="letter-block" data-file="m.json">M</div>
+            <div class="letter-block" data-file="n.json">N</div>
+            <div class="letter-block" data-file="o.json">O</div>
+            <div class="letter-block" data-file="p.json">P</div>
+            <div class="letter-block" data-file="q.json">Q</div>
+            <div class="letter-block" data-file="r.json">R</div>
+            <div class="letter-block" data-file="s.json">S</div>
+            <div class="letter-block" data-file="t.json">T</div>
+            <div class="letter-block" data-file="u.json">U</div>
+            <div class="letter-block" data-file="v.json">V</div>
+            <div class="letter-block" data-file="w.json">W</div>
+            <div class="letter-block" data-file="x.json">X</div>
+            <div class="letter-block" data-file="y.json">Y</div>
+            <div class="letter-block" data-file="z.json">Z</div>
+        </div>
+
+        <div class="test-area" id="testArea">
+            <p class="hint-text">正在嘗試從 GitHub 載入字典...</p>
+        </div>
+        
+        <div class="controls">
+            <button class="show-btn" id="showChineseWord">單字中文翻譯</button>
+            <button class="show-btn" id="showEnglishPronunciation">單字英文發音</button>
+            <button class="show-btn" id="showChineseSentence">例句中文翻譯</button>
+            <button class="show-btn" id="showEnglishSentence">例句英文發音</button>
+            <button class="correct-btn" id="correctBtn" disabled>✓ 答對</button>
+            <button class="incorrect-btn" id="incorrectBtn" disabled>✕ 答錯</button>
+        </div>
+        
+        <button class="start-btn" id="startTest" disabled>開始測試 / 下一題</button>
+        
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <script>
+        // 您的 GitHub 遠端資料庫路徑
+        const RAW_GITHUB_BASE = 'https://raw.githubusercontent.com/karltpe/MikeEnglishTest/main/';
+
+        const testArea = document.getElementById('testArea');
+        const startTestBtn = document.getElementById('startTest');
+        const feedbackDiv = document.getElementById('feedback');
+        
+        const showChineseWordBtn = document.getElementById('showChineseWord');
+        const showEnglishPronunciationBtn = document.getElementById('showEnglishPronunciation');
+        const showChineseSentenceBtn = document.getElementById('showChineseSentence');
+        const showEnglishSentenceBtn = document.getElementById('showEnglishSentence');
+        const correctBtn = document.getElementById('correctBtn');
+        const incorrectBtn = document.getElementById('incorrectBtn');
+
+        const letterBlocks = document.querySelectorAll('.letter-block');
+
+        let wordData = []; // 合併後的總題庫
+        let wordDictionary = {}; 
+        let currentWord = null;
+        let selectedFiles = new Set(); // 追蹤所有選取的檔案名稱 (複選)
+        let isSystemReady = false; 
+
+        // TTS 文字轉語音核心函式 (不變)
+        function speak(text, lang) {
+            if ('speechSynthesis' in window && text) {
+                window.speechSynthesis.cancel(); 
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang;
+                
+                if (lang.startsWith('en')) {
+                    utterance.rate = 0.9;
+                } else if (lang.startsWith('zh')) {
+                    utterance.rate = 1.0;
+                }
+
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.warn('您的瀏覽器不支援文字轉語音功能 (TTS) 或缺少文字內容.');
+            }
+        }
+        
+        // 步驟 1: 載入總字典 (不變)
+        async function loadWordDictionary() {
+            const dictionaryUrl = RAW_GITHUB_BASE + 'word_dictionary.json';
+            try {
+                const response = await fetch(dictionaryUrl);
+                if (!response.ok) {
+                    throw new Error(`無法從 GitHub 載入總字典。狀態碼: ${response.status}`);
+                }
+                wordDictionary = await response.json();
+                isSystemReady = true; 
+                
+                testArea.innerHTML = `<p class="hint-text" style="color: #007bff; font-weight: normal;">字典載入成功！請點擊上方的字母方塊選擇單字範圍 (可複選)。</p>`;
+                
+            } catch (error) {
+                console.error('Error loading word dictionary:', error.message);
+                testArea.innerHTML = `<p class="hint-text" style="color: red;">總字典載入失敗，請確認網路連線或 GitHub 路徑是否正確。</p>`;
+                
+                startTestBtn.disabled = true;
+                letterBlocks.forEach(block => block.style.pointerEvents = 'none');
+                resetControlButtons(true);
+            }
+        }
+        
+        // 步驟 2: 載入並合併所有選取的 JSON 檔案 (新增核心函式)
+        async function loadSelectedWords() {
+            if (!isSystemReady) return; 
+            
+            // 重置題庫
+            wordData = []; 
+
+            if (selectedFiles.size === 0) {
+                testArea.innerHTML = `<p class="hint-text" style="color: #007bff; font-weight: normal;">請點擊上方的字母方塊選擇單字範圍。</p>`;
+                startTestBtn.disabled = true;
+                return;
+            }
+
+            const fetchPromises = Array.from(selectedFiles).map(fileName => 
+                fetch(RAW_GITHUB_BASE + fileName)
+                    .then(response => {
+                        if (!response.ok) {
+                            console.warn(`Warning: Could not load ${fileName}. Status: ${response.status}`);
+                            return []; // 載入失敗回傳空陣列
+                        }
+                        return response.json();
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching ${fileName}:`, error);
+                        return []; // 錯誤時回傳空陣列
+                    })
+            );
+
+            // 等待所有檔案載入完成
+            const allDataArrays = await Promise.all(fetchPromises);
+            
+            // 合併所有成功的單字陣列
+            wordData = allDataArrays.flat(); 
+
+            // 更新介面狀態
+            if (wordData.length > 0) {
+                testArea.innerHTML = `<p class="hint-text" style="color: #007bff; font-weight: normal;">已載入 ${wordData.length} 個單字 (來自 ${selectedFiles.size} 個字母)。點擊「開始測試」開始！</p>`;
+                startTestBtn.disabled = false;
+            } else {
+                testArea.innerHTML = `<p class="hint-text" style="color: red;">載入的檔案中沒有可用的單字資料。</p>`;
+                startTestBtn.disabled = true;
+            }
+
+            feedbackDiv.textContent = '';
+            resetControlButtons(true);
+        }
+
+
+        // 步驟 3: 處理字母方塊點擊 (關鍵修改：支援複選)
+        letterBlocks.forEach(block => {
+            block.addEventListener('click', () => {
+                if (!isSystemReady) return; 
+
+                const fileName = block.getAttribute('data-file');
+                
+                // 1. 視覺狀態切換 (.selected-block class)
+                block.classList.toggle('selected-block');
+
+                // 2. 追蹤檔案切換
+                if (block.classList.contains('selected-block')) {
+                    selectedFiles.add(fileName);
+                } else {
+                    selectedFiles.delete(fileName);
+                }
+                
+                // 3. 重新載入合併題庫
+                loadSelectedWords();
+            });
+        });
+
+        // 步驟 4: 開始/下一題邏輯 (不變)
+        startTestBtn.addEventListener('click', () => {
+            if (wordData.length === 0) {
+                feedbackDiv.textContent = '請先選擇至少一個字母方塊。';
+                return;
+            }
+
+            // 隨機從合併後的 wordData 中選取
+            const randomIndex = Math.floor(Math.random() * wordData.length);
+            currentWord = wordData[randomIndex];
+            
+            displayQuestion(currentWord);
+            
+            resetControlButtons(false);
+            startTestBtn.textContent = '下一題';
+            feedbackDiv.textContent = '';
+        });
+
+        // 步驟 5: 顯示問題（例句，單字挖空） (不變)
+        function displayQuestion(item) {
+            const displayWord = item.word.toUpperCase();
+            const maskedSentence = item.sentence.replace(new RegExp('\\b' + item.word + '\\b', 'gi'), '_____');
+
+            // 初始時所有答案文本都是透明的 (隱藏的)
+            testArea.innerHTML = `
+                <div id="wordDisplay" class="word-display" style="color: transparent;">${displayWord}</div>
+                <div id="translationDisplay" class="word-display" style="color: transparent;">${wordDictionary[item.word] || '無翻譯'}</div>
+                <div id="sentenceDisplay" class="sentence-display">${maskedSentence}</div>
+                <div id="sentenceTranslationDisplay" class="sentence-display" style="color: transparent;">${item.translation}</div>
+            `;
+        }
+        
+        // 步驟 6: 處理提示按鈕 (只發音，不顯示文本)
+        function handleShowButton(targetId, type) {
+            if (!currentWord) return;
+            
+            // 點擊中文翻譯按鈕時，將中文翻譯文本顯示出來
+            if (type === 'word_zh') {
+                document.getElementById('translationDisplay').style.color = 'black';
+                const chineseText = wordDictionary[currentWord.word] || '無翻譯';
+                speak(chineseText, 'zh-TW');
+                return; // 執行完畢
+            } else if (type === 'sentence_zh') {
+                document.getElementById('sentenceTranslationDisplay').style.color = 'black';
+                speak(currentWord.translation, 'zh-TW');
+                return; // 執行完畢
+            }
+            
+            // 執行發音 (英文單字和例句)
+            if (type === 'word_en') {
+                speak(currentWord.word, 'en-US');
+            } else if (type === 'sentence_en') {
+                speak(currentWord.sentence, 'en-US');
+            }
+        }
+        
+        // 按鈕點擊事件對應發音類型
+        showChineseWordBtn.addEventListener('click', () => handleShowButton('translationDisplay', 'word_zh'));
+        showEnglishPronunciationBtn.addEventListener('click', () => handleShowButton('wordDisplay', 'word_en'));
+        showChineseSentenceBtn.addEventListener('click', () => handleShowButton('sentenceTranslationDisplay', 'sentence_zh'));
+        showEnglishSentenceBtn.addEventListener('click', () => handleShowButton('sentenceDisplay', 'sentence_en'));
+
+        // 步驟 7: 處理答題按鈕
+        correctBtn.addEventListener('click', () => showAnswer('✓ 恭喜答對！'));
+        incorrectBtn.addEventListener('click', () => showAnswer('✕ 答錯了，請再加強！'));
+        
+        // 顯示答案並準備下一題
+        function showAnswer(message) {
+            if (!currentWord) return;
+            
+            // 顯示所有答案
+            document.getElementById('wordDisplay').style.color = 'black';
+            document.getElementById('translationDisplay').style.color = 'black';
+            document.getElementById('sentenceTranslationDisplay').style.color = 'black';
+            
+            feedbackDiv.textContent = message;
+            
+            // 禁用提示按鈕，啟用下一題
+            resetControlButtons(true);
+            startTestBtn.disabled = false; 
+        }
+
+        // 步驟 8: 重置按鈕狀態
+        function resetControlButtons(disableAll) {
+            // 中文翻譯按鈕應該始終啟用，以便查看翻譯
+            showChineseWordBtn.disabled = disableAll; 
+            showEnglishPronunciationBtn.disabled = disableAll;
+            showChineseSentenceBtn.disabled = disableAll;
+            showEnglishSentenceBtn.disabled = disableAll;
+            correctBtn.disabled = disableAll;
+            incorrectBtn.disabled = disableAll;
+        }
+
+        // 啟動時載入字典
+        window.onload = loadWordDictionary;
+    </script>
 </body>
 </html>
-
