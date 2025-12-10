@@ -233,3 +233,386 @@
 <body>
     <div class="container">
         <h1>GEPT 3000 (Exam Mode)</h1>
+        
+        <div class="letter-blocks">
+            <div class="letter-block">A</div><div class="letter-block">B</div><div class="letter-block">C</div>
+            <div class="letter-block">D</div><div class="letter-block">E</div><div class="letter-block">F</div>
+            <div class="letter-block">G</div><div class="letter-block">H</div><div class="letter-block">I</div>
+            <div class="letter-block">J</div><div class="letter-block">K</div><div class="letter-block">L</div>
+            <div class="letter-block">M</div><div class="letter-block">N</div><div class="letter-block">O</div>
+            <div class="letter-block">P</div><div class="letter-block">Q</div><div class="letter-block">R</div>
+            <div class="letter-block">S</div><div class="letter-block">T</div><div class="letter-block">U</div>
+            <div class="letter-block">V</div><div class="letter-block">W</div><div class="letter-block">X</div>
+            <div class="letter-block">Y</div><div class="letter-block">Z</div>
+        </div>
+
+        <div class="test-area" id="testArea">
+            <p class="hint-text">正在連接 GitHub 下載單字庫...</p>
+        </div>
+        
+        <div class="feedback" id="feedback"></div>
+
+        <div class="input-group">
+            <input type="text" id="userInput" placeholder="請輸入單字..." disabled autocomplete="off">
+            <button class="submit-btn" id="submitBtn" disabled>答題</button>
+        </div>
+
+        <div class="controls">
+            <button class="voice-btn" id="btnSpeakWord" disabled>🔊 單字發音</button>
+            <button class="voice-btn" id="btnSpeakSentence" disabled>🔊 例句發音</button>
+        </div>
+
+        <div class="rate-controls">
+            <label for="rateSlider">語速: <span id="rateValue">1.0</span>x</label>
+            <input type="range" id="rateSlider" min="0.5" max="1.5" step="0.1" value="1.0">
+        </div>
+        
+        <button class="action-btn btn-disabled" id="actionBtn" disabled>請先選擇字母</button>
+    </div>
+
+    <script>
+        // 設定 GitHub 資料來源
+        // 請確認您的 GitHub 帳號、Repo 名稱、分支 (main/master) 都是正確的
+        const GITHUB_JSON_URL = 'https://raw.githubusercontent.com/karltpe/MikeEnglishTest/main/word_ad.json';
+
+        // 狀態變數
+        let masterWordList = [];     
+        let currentTestQueue = [];   
+        let currentWord = null;      
+        let selectedLetters = new Set();
+        
+        // 測驗進度變數
+        let currentIndex = 0;        
+        let isAnswerRevealed = false; 
+        let correctCount = 0;        
+        let incorrectList = [];      
+
+        // DOM 元素
+        const testArea = document.getElementById('testArea');
+        const feedbackDiv = document.getElementById('feedback');
+        const userInput = document.getElementById('userInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const actionBtn = document.getElementById('actionBtn'); 
+        const btnSpeakWord = document.getElementById('btnSpeakWord');
+        const btnSpeakSentence = document.getElementById('btnSpeakSentence');
+        const letterBlocks = document.querySelectorAll('.letter-block');
+        const rateSlider = document.getElementById('rateSlider');
+        const rateValueDisplay = document.getElementById('rateValue');
+
+        // 初始化：從 GitHub 載入資料
+        window.onload = async () => {
+            try {
+                // 加個時間戳記避免快取 (?t=...)
+                const response = await fetch(GITHUB_JSON_URL + '?t=' + new Date().getTime());
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP 錯誤! 狀態碼: ${response.status}`);
+                }
+
+                masterWordList = await response.json();
+                
+                if (!Array.isArray(masterWordList) || masterWordList.length === 0) {
+                    throw new Error("JSON 格式錯誤或內容為空");
+                }
+
+                testArea.innerHTML = `<p class="hint-text" style="color: #007bff; font-weight: normal;">
+                    資料載入成功！共 ${masterWordList.length} 個單字。<br>
+                    請點擊上方的字母方塊選擇範圍 (例如 A)。
+                </p>`;
+                
+                // 啟用按鈕
+                actionBtn.textContent = "請先選擇字母";
+
+            } catch (error) {
+                console.error("載入失敗:", error);
+                let msg = error.message;
+                if (msg.includes("JSON")) {
+                    msg += "<br>(請檢查 GitHub 上的 JSON 檔案是否有語法錯誤，例如多餘的逗號)";
+                }
+                testArea.innerHTML = `<p class="hint-text" style="color: red;">載入失敗: ${msg}</p>`;
+            }
+            
+            rateValueDisplay.textContent = parseFloat(rateSlider.value).toFixed(1);
+        };
+
+        // ----------------------------------------------------
+        // 核心邏輯
+        // ----------------------------------------------------
+
+        // Fisher-Yates 洗牌演算法
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 語音功能
+        function speak(text) {
+            const rate = parseFloat(rateSlider.value);
+            if ('speechSynthesis' in window && text) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = rate;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // 建立並洗牌題庫
+        function startNewTest() {
+            // 1. 篩選
+            let filtered = masterWordList.filter(item => {
+                if (!item.word) return false;
+                const firstChar = item.word.charAt(0).toUpperCase();
+                return selectedLetters.has(firstChar);
+            });
+
+            if (filtered.length === 0) {
+                currentTestQueue = [];
+                testArea.innerHTML = `<p class="hint-text" style="color:red;">無符合單字，請選擇其他字母。</p>`;
+                updateUIState('idle');
+                return;
+            }
+
+            // 2. 洗牌 (確保這一輪順序隨機但固定，且不重複)
+            currentTestQueue = shuffleArray([...filtered]); 
+            
+            // 3. 重置計數器
+            currentIndex = 0;
+            correctCount = 0;
+            incorrectList = [];
+            
+            // 4. 開始第一題
+            loadQuestion();
+        }
+
+        // 載入當前題目
+        function loadQuestion() {
+            // 檢查是否考完
+            if (currentIndex >= currentTestQueue.length) {
+                showSummaryScreen();
+                return;
+            }
+
+            // 取出題目
+            currentWord = currentTestQueue[currentIndex];
+            isAnswerRevealed = false;
+
+            // 更新 UI
+            updateUIState('testing');
+            userInput.value = "";
+            userInput.className = ""; // 移除紅綠框
+            userInput.focus();
+            feedbackDiv.textContent = "";
+
+            // 處理顯示文字
+            const type = currentWord.type ? `(${currentWord.type})` : "";
+            const cnWord = currentWord.cn_word || "";
+            const cnSentence = currentWord.cn_sentence || "";
+            
+            // 例句挖空 (處理特殊字元)
+            let maskedSentence = "";
+            if (currentWord.sentence) {
+                const escapedWord = currentWord.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(`\\b${escapedWord}\\b`, 'gi');
+                maskedSentence = currentWord.sentence.replace(regex, '______');
+            }
+
+            testArea.innerHTML = `
+                <div class="progress-info">進度: ${currentIndex + 1} / ${currentTestQueue.length}</div>
+                <div id="wordDisplay" class="word-display" style="visibility: hidden;">${currentWord.word}</div>
+                <div id="kkDisplay" class="kk-display" style="visibility: hidden;">${currentWord.KK || ""}</div>
+                
+                <div class="cn-word-display">
+                    <span style="font-size: 0.6em; color: #888;">${type}</span> ${cnWord}
+                </div>
+                <div id="sentenceDisplay" class="sentence-display">${maskedSentence}</div>
+                <div class="sentence-display" style="color: #888;">${cnSentence}</div>
+            `;
+        }
+
+        // 顯示結算畫面
+        function showSummaryScreen() {
+            updateUIState('finished');
+            
+            const total = currentTestQueue.length;
+            const score = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+            
+            let errorHtml = '';
+            if (incorrectList.length > 0) {
+                errorHtml = `
+                    <div class="summary-container">
+                        <h3 style="color: #dc3545;">錯誤單字列表 (${incorrectList.length})</h3>
+                        <table class="error-table">
+                            <thead><tr><th>單字</th><th>中文</th><th>KK</th></tr></thead>
+                            <tbody>
+                                ${incorrectList.map(item => `
+                                    <tr class="error-row">
+                                        <td><strong>${item.word}</strong></td>
+                                        <td>${item.cn_word}</td>
+                                        <td>${item.KK}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else {
+                errorHtml = `<h3 style="color: #28a745; margin-top:20px;">太棒了！全對！🎉</h3>`;
+            }
+
+            testArea.innerHTML = `
+                <h2 style="color: #333;">測驗結束</h2>
+                <div style="font-size: 3em; color: ${score >= 60 ? '#28a745' : '#dc3545'}; font-weight: bold; margin: 10px 0;">
+                    ${score} <span style="font-size: 0.4em; color: #666;">分</span>
+                </div>
+                <p style="font-size: 1.2em;">
+                    總題數: ${total} | 答對: ${correctCount} | 錯誤: ${incorrectList.length}
+                </p>
+                ${errorHtml}
+            `;
+            
+            feedbackDiv.textContent = "請按下方按鈕重新開始。";
+        }
+
+        // 檢查答案
+        function checkAnswer() {
+            if (!currentWord || isAnswerRevealed) return;
+
+            const userAns = userInput.value.trim().toLowerCase();
+            const correctAns = currentWord.word.trim().toLowerCase();
+
+            if (userAns === correctAns) {
+                // 答對
+                correctCount++;
+                revealAnswer(true);
+                feedbackDiv.textContent = "🎉 答對了！";
+                feedbackDiv.style.color = "green";
+                userInput.classList.add('correct');
+                speak(currentWord.word);
+            } else {
+                // 答錯
+                feedbackDiv.textContent = "❌ 拼字錯誤，請再試一次，或按放棄。";
+                feedbackDiv.style.color = "red";
+                userInput.classList.add('incorrect');
+                // 震動效果
+                setTimeout(() => userInput.classList.remove('incorrect'), 500);
+            }
+        }
+
+        // 放棄 / 偷看答案
+        function giveUp() {
+            if (isAnswerRevealed) return;
+            
+            // 記錄錯誤
+            incorrectList.push(currentWord);
+            
+            revealAnswer(false);
+            feedbackDiv.textContent = `😭 答案是: ${currentWord.word}`;
+            feedbackDiv.style.color = "#d63384";
+        }
+
+        // 公布答案狀態切換
+        function revealAnswer(isCorrect) {
+            isAnswerRevealed = true;
+            document.getElementById('wordDisplay').style.visibility = 'visible';
+            document.getElementById('kkDisplay').style.visibility = 'visible';
+            // 顯示完整例句
+            if (currentWord.sentence) {
+                document.getElementById('sentenceDisplay').textContent = currentWord.sentence;
+            }
+            updateUIState('revealed');
+        }
+
+        // UI 狀態管理
+        function updateUIState(state) {
+            switch(state) {
+                case 'idle': // 尚未選擇字母
+                    userInput.disabled = true;
+                    submitBtn.disabled = true;
+                    btnSpeakWord.disabled = true;
+                    btnSpeakSentence.disabled = true;
+                    actionBtn.textContent = "請先選擇字母";
+                    actionBtn.className = "action-btn btn-disabled";
+                    actionBtn.disabled = true;
+                    break;
+                    
+                case 'testing': // 答題中
+                    userInput.disabled = false;
+                    submitBtn.disabled = false;
+                    btnSpeakWord.disabled = false;
+                    btnSpeakSentence.disabled = false;
+                    actionBtn.textContent = "放棄，偷看答案";
+                    actionBtn.className = "action-btn btn-giveup";
+                    actionBtn.disabled = false;
+                    actionBtn.onclick = giveUp; 
+                    break;
+                    
+                case 'revealed': // 答案已揭曉
+                    userInput.disabled = true;
+                    submitBtn.disabled = true;
+                    actionBtn.textContent = "下一題";
+                    actionBtn.className = "action-btn btn-next";
+                    actionBtn.disabled = false;
+                    actionBtn.onclick = () => {
+                        currentIndex++; // 進入下一題
+                        loadQuestion();
+                    };
+                    break;
+                    
+                case 'finished': // 測驗結束
+                    userInput.disabled = true;
+                    submitBtn.disabled = true;
+                    btnSpeakWord.disabled = true;
+                    btnSpeakSentence.disabled = true;
+                    actionBtn.textContent = "重新開始 (下一輪)";
+                    actionBtn.className = "action-btn btn-next";
+                    actionBtn.disabled = false;
+                    actionBtn.onclick = startNewTest; 
+                    break;
+            }
+        }
+
+        // ----------------------------------------------------
+        // 事件監聽
+        // ----------------------------------------------------
+        
+        letterBlocks.forEach(block => {
+            block.addEventListener('click', () => {
+                if (masterWordList.length === 0) return;
+
+                // 如果正在考試且未結束，切換需要確認
+                if (currentTestQueue.length > 0 && currentIndex < currentTestQueue.length) {
+                    if(!confirm("切換題庫將中斷目前考試並重置分數，確定嗎？")) return;
+                }
+                
+                const letter = block.textContent.trim();
+                block.classList.toggle('selected-block');
+                
+                if (block.classList.contains('selected-block')) {
+                    selectedLetters.add(letter);
+                } else {
+                    selectedLetters.delete(letter);
+                }
+                
+                startNewTest();
+            });
+        });
+
+        submitBtn.addEventListener('click', checkAnswer);
+        userInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter' && !submitBtn.disabled) checkAnswer();
+        });
+
+        btnSpeakWord.addEventListener('click', () => { if(currentWord) speak(currentWord.word); });
+        btnSpeakSentence.addEventListener('click', () => { if(currentWord) speak(currentWord.sentence); });
+
+        rateSlider.addEventListener('input', () => {
+            rateValueDisplay.textContent = parseFloat(rateSlider.value).toFixed(1);
+        });
+
+    </script>
+</body>
+</html>
