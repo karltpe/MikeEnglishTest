@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEPT 3000 words (Enhanced)</title>
+    <title>GEPT 3000 Words (Interactive Quiz)</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -25,29 +25,29 @@
         h1 {
             color: #333;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             font-size: 1.8em;
         }
         .letter-blocks {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 30px;
+            gap: 8px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
         .letter-block {
-            padding: 10px 15px;
+            padding: 8px 12px;
             background-color: #007bff;
             color: white;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 1em;
+            font-size: 0.9em;
             font-weight: bold;
-            transition: background-color 0.3s, transform 0.2s;
+            transition: background-color 0.2s, transform 0.2s;
             text-align: center;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             border: 2px solid transparent; 
-            width: 30px; /* 固定寬度讓排列整齊 */
+            width: 25px; 
         }
         .letter-block:hover {
             background-color: #0056b3;
@@ -62,7 +62,7 @@
             border: 2px solid #ccc;
             padding: 30px;
             border-radius: 8px;
-            min-height: 200px; /* 稍微加高以容納音標 */
+            min-height: 250px; 
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -72,26 +72,28 @@
             text-align: center;
         }
         .hint-text {
-            color: #dc3545;
-            font-size: 1.2em;
-            font-weight: bold;
+            color: #007bff;
+            font-size: 1.1em;
+            margin-bottom: 15px;
         }
+        
+        /* 隱藏/顯示區塊 */
         .word-display {
             font-size: 2.5em;
             font-weight: bold;
             color: #333;
             margin-bottom: 5px;
+            min-height: 1.2em; /* 避免隱藏時高度塌陷 */
         }
-        /* 新增 KK 音標樣式 */
         .kk-display {
             font-family: 'Lucida Sans Unicode', 'Arial Unicode MS', sans-serif;
             font-size: 1.4em;
             color: #666;
             margin-bottom: 15px;
-            font-weight: normal;
+            min-height: 1.5em;
         }
         .cn-word-display {
-            font-size: 1.5em;
+            font-size: 1.8em;
             color: #007bff;
             margin-bottom: 20px;
             font-weight: bold;
@@ -102,66 +104,95 @@
             margin-bottom: 10px;
             line-height: 1.4;
         }
+
+        /* 輸入框樣式 */
+        .input-group {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            width: 100%;
+            max-width: 500px;
+        }
+        #userInput {
+            padding: 10px 15px;
+            font-size: 1.2em;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            width: 70%;
+            text-align: center;
+            outline: none;
+        }
+        #userInput:focus {
+            border-color: #007bff;
+        }
+        #userInput.correct {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        #userInput.incorrect {
+            border-color: #dc3545;
+            background-color: #f8d7da;
+        }
+
+        /* 按鈕樣式 */
         .controls {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .controls button {
-            padding: 12px 20px;
+            padding: 10px 18px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.95em;
+            font-size: 0.9em;
             font-weight: bold;
             transition: background-color 0.3s;
-        }
-        .show-btn {
-            background-color: #17a2b8;
             color: white;
         }
-        .show-btn:hover {
-            background-color: #117a8b;
-        }
-        .correct-btn {
+        .voice-btn { background-color: #17a2b8; }
+        .voice-btn:hover { background-color: #117a8b; }
+        
+        .submit-btn {
             background-color: #28a745;
-            color: white;
-        }
-        .correct-btn:hover {
-            background-color: #1e7e34;
-        }
-        .incorrect-btn {
-            background-color: #dc3545;
-            color: white;
-        }
-        .incorrect-btn:hover {
-            background-color: #bd2130;
-        }
-        .start-btn {
-            width: 100%;
-            background-color: #ffc107;
-            color: #333;
-            padding: 15px;
-            margin-top: 10px;
+            padding: 10px 20px;
             font-size: 1.1em;
-            font-weight: bold;
+            color: white;
             border: none;
             border-radius: 6px;
             cursor: pointer;
         }
-        .start-btn:hover {
-            background-color: #e0a800;
-        }
-        .start-btn:disabled {
-            background-color: #ffeeba;
-            cursor: not-allowed;
-        }
-        .feedback {
-            font-size: 1.1em;
+        .submit-btn:hover { background-color: #218838; }
+        .submit-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        .action-btn {
+            width: 100%;
+            padding: 15px;
             margin-top: 10px;
-            min-height: 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #333;
+            transition: background-color 0.2s;
+        }
+        /* 放棄按鈕樣式 */
+        .btn-giveup { background-color: #ffc107; } 
+        .btn-giveup:hover { background-color: #e0a800; }
+        /* 下一題按鈕樣式 */
+        .btn-next { background-color: #007bff; color: white; }
+        .btn-next:hover { background-color: #0056b3; }
+        
+        .btn-disabled { background-color: #e9ecef; color: #999; cursor: not-allowed; }
+
+        .feedback {
+            font-size: 1.2em;
+            margin-top: 15px;
+            min-height: 30px;
             text-align: center;
             font-weight: bold;
         }
@@ -169,7 +200,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>GEPT 3000 Words (Enhanced)</h1>
+        <h1>GEPT 3000 (Interactive Quiz)</h1>
         
         <div class="letter-blocks">
             <div class="letter-block">A</div><div class="letter-block">B</div><div class="letter-block">C</div>
@@ -184,296 +215,273 @@
         </div>
 
         <div class="test-area" id="testArea">
-            <p class="hint-text">正在從 GitHub 下載單字庫 (word_ad.json)...</p>
+            <p class="hint-text">請選擇上方字母開始測驗</p>
         </div>
-        
-        <div class="controls">
-            <button class="show-btn" id="showChineseWord">單字中文翻譯</button>
-            <button class="show-btn" id="showEnglishPronunciation">單字英文發音</button>
-            <button class="show-btn" id="showChineseSentence">例句中文翻譯</button>
-            <button class="show-btn" id="showEnglishSentence">例句英文發音</button>
-            <button class="correct-btn" id="correctBtn" disabled>✓ 答對</button>
-            <button class="incorrect-btn" id="incorrectBtn" disabled>✕ 答錯</button>
-        </div>
-        
-        <button class="start-btn" id="startTest" disabled>開始測試 / 下一題</button>
         
         <div class="feedback" id="feedback"></div>
+
+        <div class="input-group">
+            <input type="text" id="userInput" placeholder="請輸入單字..." disabled autocomplete="off">
+            <button class="submit-btn" id="submitBtn" disabled>答題</button>
+        </div>
+
+        <div class="controls">
+            <button class="voice-btn" id="btnSpeakWord">🔊 聽單字發音</button>
+            <button class="voice-btn" id="btnSpeakSentence">🔊 聽例句發音</button>
+        </div>
+        
+        <button class="action-btn btn-disabled" id="actionBtn" disabled>請先選擇字母</button>
     </div>
 
     <script>
-        // 設定主要資料來源
-        const RAW_GITHUB_BASE = 'https://raw.githubusercontent.com/karltpe/MikeEnglishTest/main/';
-        const DATA_FILE = 'word_ad.json'; // 新的資料檔名
+        // ******************************************************************
+        // 請在此處貼上您修正後的 JSON 資料 (確保格式正確，移除多餘逗號)
+        // ******************************************************************
+        const LOCAL_DATA = [
+           {
+            "word": "a",
+            "KK": "[ə]",
+            "type": "art.",
+            "cn_word": "一個",
+            "sentence": "It is a beautiful day.",
+            "cn_sentence": "這是一個美好的一天。"
+          },
+          {
+            "word": "ability",
+            "KK": "[ə'bɪlətɪ]",
+            "type": "n.",
+            "cn_word": "能力",
+            "sentence": "He has the ability to make me smile.",
+            "cn_sentence": "他有讓我微笑的能力。"
+          }
+          // ... 請確保這裡放入您所有的單字資料，並注意 JSON 格式 ...
+        ];
 
+        // 變數宣告
+        let masterWordList = [];
+        let currentTestPool = [];
+        let currentWord = null;
+        let selectedLetters = new Set();
+        let isAnswerRevealed = false; // 追蹤目前是否已公布答案
+
+        // DOM 元素
         const testArea = document.getElementById('testArea');
-        const startTestBtn = document.getElementById('startTest');
         const feedbackDiv = document.getElementById('feedback');
-        
-        const showChineseWordBtn = document.getElementById('showChineseWord');
-        const showEnglishPronunciationBtn = document.getElementById('showEnglishPronunciation');
-        const showChineseSentenceBtn = document.getElementById('showChineseSentence');
-        const showEnglishSentenceBtn = document.getElementById('showEnglishSentence');
-        const correctBtn = document.getElementById('correctBtn');
-        const incorrectBtn = document.getElementById('incorrectBtn');
-
+        const userInput = document.getElementById('userInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const actionBtn = document.getElementById('actionBtn'); // 這顆按鈕會變身
+        const btnSpeakWord = document.getElementById('btnSpeakWord');
+        const btnSpeakSentence = document.getElementById('btnSpeakSentence');
         const letterBlocks = document.querySelectorAll('.letter-block');
 
-        // 資料變數
-        let masterWordList = []; // 存放下載下來的所有單字
-        let currentTestPool = []; // 當前選中字母的單字池
-        let currentWord = null;   // 當前正在考的單字物件
-        let selectedLetters = new Set(); 
-        let isSystemReady = false; 
-
-        // 錯誤單字計數器 (Local Storage)
-        let errorCounts = {}; 
-
-        // 語音函式
-        function speak(text, lang) {
-            if ('speechSynthesis' in window && text) {
-                window.speechSynthesis.cancel(); 
-                
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = lang; // 'en-US' or 'zh-TW'
-                
-                if (lang.startsWith('en')) {
-                    utterance.rate = 0.85; // 英文稍微放慢一點點
-                } else {
-                    utterance.rate = 1.0;
-                }
-
-                window.speechSynthesis.speak(utterance);
-            } else {
-                console.warn('您的瀏覽器不支援文字轉語音功能 (TTS) 或缺少文字內容.');
-            }
-        }
-        
-        // LocalStorage 載入/儲存
-        function loadErrorCounts() {
-            const storedData = localStorage.getItem('mike_word_errors_v2'); // 改個key避免跟舊版衝突
-            if (storedData) {
-                errorCounts = JSON.parse(storedData);
-            }
-        }
-
-        function saveErrorCounts() {
-            localStorage.setItem('mike_word_errors_v2', JSON.stringify(errorCounts));
-        }
-
-        // 步驟 1: 載入 master file (word_ad.json)
-        async function loadMasterData() {
-            loadErrorCounts(); 
-            const url = RAW_GITHUB_BASE + DATA_FILE;
-            
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`無法載入資料。狀態碼: ${response.status}`);
-                }
-                masterWordList = await response.json();
-                
-                // 資料簡單驗證
-                if (!Array.isArray(masterWordList) || masterWordList.length === 0) {
-                    throw new Error("載入的 JSON 格式錯誤或為空");
-                }
-
-                isSystemReady = true; 
-                testArea.innerHTML = `<p class="hint-text" style="color: #007bff; font-weight: normal;">
-                    資料載入成功！共 ${masterWordList.length} 個單字。<br>
-                    請點擊上方的字母方塊選擇範圍 (可複選)。
-                </p>`;
-                
-            } catch (error) {
-                console.error('Error loading data:', error);
-                testArea.innerHTML = `<p class="hint-text" style="color: red;">
-                    資料載入失敗 (${error.message})。<br>
-                    請確認 GitHub 路徑與檔案名稱是否正確 (word_ad.json)。
-                </p>`;
-                startTestBtn.disabled = true;
-                resetControlButtons(true);
-            }
-        }
-        
-        // 步驟 2: 根據選取的字母建立題庫
-        function updateWordPool() {
-            if (!isSystemReady) return;
-            
-            // 重置介面
-            resetControlButtons(true); 
-            currentWord = null; 
-            startTestBtn.textContent = '開始測試 / 下一題'; 
-            feedbackDiv.textContent = '';
-
-            if (selectedLetters.size === 0) {
-                testArea.innerHTML = `<p class="hint-text" style="color: #007bff; font-weight: normal;">請點擊上方的字母方塊選擇單字範圍。</p>`;
-                startTestBtn.disabled = true;
-                currentTestPool = [];
+        // 初始化
+        window.onload = () => {
+            masterWordList = LOCAL_DATA;
+            if (!Array.isArray(masterWordList) || masterWordList.length === 0) {
+                testArea.innerHTML = `<p style="color:red;">資料載入異常，請檢查程式碼中的 LOCAL_DATA。</p>`;
                 return;
             }
+            // 預設顯示
+            testArea.innerHTML = `<p class="hint-text" style="color: #007bff; font-weight: normal;">
+                資料載入成功！共 ${masterWordList.length} 個單字。<br>
+                請點擊上方的字母方塊選擇範圍。
+            </p>`;
+        };
 
-            // 篩選邏輯：從 masterWordList 挑出開頭字母符合 selectedLetters 的單字
+        // 語音功能
+        function speak(text, rate = 1.0) {
+            if ('speechSynthesis' in window && text) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = rate;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // 更新題庫
+        function updateWordPool() {
             currentTestPool = masterWordList.filter(item => {
                 if (!item.word) return false;
                 const firstChar = item.word.charAt(0).toUpperCase();
                 return selectedLetters.has(firstChar);
             });
 
-            // 更新顯示
+            // 重置介面
+            resetUIForNewPool();
+        }
+
+        // 當使用者切換字母時的介面重置
+        function resetUIForNewPool() {
+            currentWord = null;
+            userInput.value = "";
+            userInput.disabled = true;
+            submitBtn.disabled = true;
+            feedbackDiv.textContent = "";
+            
             if (currentTestPool.length > 0) {
-                testArea.innerHTML = `<p class="hint-text" style="color: #007bff; font-weight: normal;">
-                    已選取 ${selectedLetters.size} 個字母，共 ${currentTestPool.length} 個單字。<br>
-                    點擊「開始測試」開始！
-                </p>`;
-                startTestBtn.disabled = false;
+                testArea.innerHTML = `<p class="hint-text">已選取 ${currentTestPool.length} 個單字。<br>請按下方按鈕開始。</p>`;
+                actionBtn.textContent = "開始測試";
+                actionBtn.className = "action-btn btn-next"; // 藍色樣式
+                actionBtn.disabled = false;
+                isAnswerRevealed = true; // 設為 true 讓按鈕邏輯視為「準備好下一題」
             } else {
-                testArea.innerHTML = `<p class="hint-text" style="color: red;">選取的字母中沒有對應的單字資料。</p>`;
-                startTestBtn.disabled = true;
+                testArea.innerHTML = `<p class="hint-text" style="color:red;">無符合單字，請選擇其他字母。</p>`;
+                actionBtn.textContent = "無題目";
+                actionBtn.className = "action-btn btn-disabled";
+                actionBtn.disabled = true;
             }
         }
 
-        // 步驟 3: 處理字母方塊點擊
+        // 字母點擊事件
         letterBlocks.forEach(block => {
             block.addEventListener('click', () => {
-                if (!isSystemReady) return; 
-
-                // 檢查是否正在考試中
-                if (currentWord !== null && !startTestBtn.disabled) {
-                    const confirmation = confirm("更改字母範圍會重置目前的題目。是否確定要更改？");
-                    if (!confirmation) return;
+                const letter = block.textContent.trim();
+                
+                // 如果正在答題中，切換題庫要確認
+                if (currentWord !== null && !isAnswerRevealed) {
+                    if(!confirm("切換題庫將放棄目前題目，確定嗎？")) return;
                 }
 
-                const letter = block.textContent.trim(); // 取得 "A", "B"...
-                
-                // 切換選取狀態
                 block.classList.toggle('selected-block');
-
-                // 更新選取清單
                 if (block.classList.contains('selected-block')) {
                     selectedLetters.add(letter);
                 } else {
                     selectedLetters.delete(letter);
                 }
-                
                 updateWordPool();
             });
         });
 
-        // 步驟 4: 開始/下一題
-        startTestBtn.addEventListener('click', () => {
+        // "主要行動按鈕" 邏輯 (下一題 / 放棄)
+        actionBtn.addEventListener('click', () => {
             if (currentTestPool.length === 0) return;
 
+            // 狀態 1: 答案已經公佈了 (或剛開始) -> 進入「下一題」
+            if (isAnswerRevealed) {
+                loadNextQuestion();
+            } 
+            // 狀態 2: 正在答題中 -> 使用者選擇「放棄，偷看答案」
+            else {
+                giveUpAndShowAnswer();
+            }
+        });
+
+        // 載入下一題
+        function loadNextQuestion() {
             // 隨機選字
             const randomIndex = Math.floor(Math.random() * currentTestPool.length);
             currentWord = currentTestPool[randomIndex];
-            
-            displayQuestion(currentWord);
-            
-            resetControlButtons(false);
-            startTestBtn.textContent = '下一題';
-            feedbackDiv.textContent = '';
-        });
+            isAnswerRevealed = false; // 重置狀態為「未答題」
 
-        // 步驟 5: 顯示題目 (針對新結構調整)
-        function displayQuestion(item) {
-            const displayWord = item.word; // 英文單字
-            const kk = item.KK ? item.KK : ""; // KK音標 (有些可能沒有)
-            const type = item.type ? `(${item.type})` : ""; // 詞性
-            const cnWord = item.cn_word; // 中文解釋 (新欄位)
+            // 介面更新
+            actionBtn.textContent = "放棄，偷看答案";
+            actionBtn.className = "action-btn btn-giveup"; // 黃色警告樣式
             
-            // 處理例句挖空
+            userInput.value = "";
+            userInput.disabled = false;
+            userInput.className = ""; // 移除紅綠框
+            userInput.focus(); // 自動聚焦
+            submitBtn.disabled = false;
+            feedbackDiv.textContent = "";
+
+            // 顯示題目 (隱藏英文單字)
+            const type = currentWord.type ? `(${currentWord.type})` : "";
+            const cnSentence = currentWord.cn_sentence || "";
+            
+            // 例句挖空處理
             let maskedSentence = "";
-            if (item.sentence) {
-                // 簡單的正則表達式來替換單字 (不分大小寫)
-                const regex = new RegExp(`\\b${item.word}\\b`, 'gi');
-                maskedSentence = item.sentence.replace(regex, '______');
-            } else {
-                maskedSentence = "(無例句)";
+            if (currentWord.sentence) {
+                // 將單字替換為底線
+                const regex = new RegExp(`\\b${currentWord.word}\\b`, 'gi');
+                maskedSentence = currentWord.sentence.replace(regex, '______');
             }
 
-            const cnSentence = item.cn_sentence || "(無例句翻譯)";
-
             testArea.innerHTML = `
-                <div id="wordDisplay" class="word-display" style="color: transparent;">${displayWord}</div>
-                <div id="kkDisplay" class="kk-display" style="color: transparent;">${kk}</div>
+                <div id="wordDisplay" class="word-display" style="visibility: hidden;">${currentWord.word}</div>
                 
-                <div id="translationDisplay" class="cn-word-display" style="color: transparent;">
-                    <span style="font-size: 0.6em; color: #888;">${type}</span> ${cnWord}
+                <div id="kkDisplay" class="kk-display" style="visibility: hidden;">${currentWord.KK || ""}</div>
+                
+                <div class="cn-word-display">
+                    <span style="font-size: 0.6em; color: #888;">${type}</span> ${currentWord.cn_word}
                 </div>
                 
                 <div id="sentenceDisplay" class="sentence-display">${maskedSentence}</div>
-                <div id="sentenceTranslationDisplay" class="sentence-display" style="color: transparent;">${cnSentence}</div>
+                <div class="sentence-display" style="color: #888;">${cnSentence}</div>
             `;
         }
-        
-        // 步驟 6: 按鈕顯示控制
-        function handleShowButton(type) {
-            if (!currentWord) return;
-            
-            if (type === 'word_zh') {
-                document.getElementById('translationDisplay').style.color = 'black'; // 顯示中文與詞性
-                speak(currentWord.cn_word, 'zh-TW');
-            } else if (type === 'word_en') {
-                document.getElementById('wordDisplay').style.color = '#333';
-                document.getElementById('kkDisplay').style.color = '#666'; // 顯示 KK
-                speak(currentWord.word, 'en-US');
-            } else if (type === 'sentence_zh') {
-                document.getElementById('sentenceTranslationDisplay').style.color = '#555';
-                speak(currentWord.cn_sentence, 'zh-TW');
-            } else if (type === 'sentence_en') {
-                // 顯示完整例句 (把挖空填回去)
-                const originalSentence = currentWord.sentence;
-                document.getElementById('sentenceDisplay').textContent = originalSentence;
-                speak(originalSentence, 'en-US');
-            }
-        }
-        
-        showChineseWordBtn.addEventListener('click', () => handleShowButton('word_zh'));
-        showEnglishPronunciationBtn.addEventListener('click', () => handleShowButton('word_en'));
-        showChineseSentenceBtn.addEventListener('click', () => handleShowButton('sentence_zh'));
-        showEnglishSentenceBtn.addEventListener('click', () => handleShowButton('sentence_en'));
 
-        // 答對/答錯按鈕
-        correctBtn.addEventListener('click', () => showAnswer('✓ 恭喜答對！'));
+        // 放棄，顯示答案
+        function giveUpAndShowAnswer() {
+            revealAnswer(false); // false 代表不是答對，是放棄
+            feedbackDiv.textContent = "沒關係，再接再厲！答案是 " + currentWord.word;
+            feedbackDiv.style.color = "#d63384"; // 紫紅色
+        }
+
+        // 送出答案 (答題)
+        submitBtn.addEventListener('click', checkAnswer);
         
-        incorrectBtn.addEventListener('click', () => {
-            if (currentWord && currentWord.word) {
-                const w = currentWord.word.toLowerCase();
-                errorCounts[w] = (errorCounts[w] || 0) + 1; 
-                saveErrorCounts(); 
-                console.log(`單字 "${w}" 錯誤次數: ${errorCounts[w]}`);
+        // 支援 Enter 鍵送出
+        userInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter' && !submitBtn.disabled) {
+                checkAnswer();
             }
-            showAnswer('✕ 答錯了，請再加強！');
         });
-        
-        function showAnswer(message) {
+
+        function checkAnswer() {
             if (!currentWord) return;
-            
-            // 顯示所有隱藏資訊
-            document.getElementById('wordDisplay').style.color = '#333';
-            document.getElementById('kkDisplay').style.color = '#666';
-            document.getElementById('translationDisplay').style.color = 'black';
-            document.getElementById('sentenceTranslationDisplay').style.color = '#555';
-            document.getElementById('sentenceDisplay').textContent = currentWord.sentence;
-            
-            feedbackDiv.textContent = message;
-            feedbackDiv.style.color = message.includes('✓') ? 'green' : 'red';
-            
-            resetControlButtons(true);
-            startTestBtn.disabled = false; 
+
+            const userAns = userInput.value.trim().toLowerCase();
+            const correctAns = currentWord.word.trim().toLowerCase();
+
+            if (userAns === correctAns) {
+                // 答對了！
+                revealAnswer(true);
+                feedbackDiv.textContent = "🎉 恭喜答對！";
+                feedbackDiv.style.color = "green";
+                userInput.classList.add('correct');
+                speak(currentWord.word); // 答對自動發音
+            } else {
+                // 答錯了
+                feedbackDiv.textContent = "❌ 答錯囉，請再試一次！";
+                feedbackDiv.style.color = "red";
+                userInput.classList.add('incorrect');
+                
+                // 震動效果 (移除 class 再加回去觸發動畫，這裡簡單做)
+                setTimeout(() => userInput.classList.remove('incorrect'), 500);
+            }
         }
 
-        function resetControlButtons(disableAll) {
-            showChineseWordBtn.disabled = disableAll;
-            showEnglishPronunciationBtn.disabled = disableAll;
-            showChineseSentenceBtn.disabled = disableAll;
-            showEnglishSentenceBtn.disabled = disableAll;
-            correctBtn.disabled = disableAll;
-            incorrectBtn.disabled = disableAll;
+        // 公布答案 (共用函式)
+        function revealAnswer(isCorrect) {
+            isAnswerRevealed = true; // 標記為已揭曉
+
+            // 顯示隱藏的元素
+            document.getElementById('wordDisplay').style.visibility = 'visible';
+            document.getElementById('kkDisplay').style.visibility = 'visible';
+            
+            // 還原例句
+            if (currentWord.sentence) {
+                document.getElementById('sentenceDisplay').textContent = currentWord.sentence;
+            }
+
+            // 更新按鈕狀態
+            actionBtn.textContent = "下一題";
+            actionBtn.className = "action-btn btn-next"; // 變回藍色
+            
+            // 如果是放棄，鎖定輸入框；如果是答對，也鎖定
+            userInput.disabled = true;
+            submitBtn.disabled = true;
         }
 
-        // 初始化
-        window.onload = loadMasterData;
+        // 輔助發音按鈕
+        btnSpeakWord.addEventListener('click', () => {
+            if (currentWord) speak(currentWord.word);
+        });
+        btnSpeakSentence.addEventListener('click', () => {
+            if (currentWord && currentWord.sentence) speak(currentWord.sentence, 0.9);
+        });
+
     </script>
 </body>
 </html>
